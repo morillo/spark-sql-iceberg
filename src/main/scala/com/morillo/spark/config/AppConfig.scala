@@ -1,4 +1,4 @@
-package com.example.spark.config
+package com.morillo.spark.config
 
 case class AppConfig(
   sparkAppName: String,

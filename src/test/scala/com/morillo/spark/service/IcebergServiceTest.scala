@@ -1,8 +1,8 @@
-package com.example.spark.service
+package com.morillo.spark.service
 
-import com.example.spark.config.AppConfig
-import com.example.spark.model.User
-import com.example.spark.util.SparkSessionFactory
+import com.morillo.spark.config.AppConfig
+import com.morillo.spark.model.User
+import com.morillo.spark.util.SparkSessionFactory
 import org.apache.spark.sql.SparkSession
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}

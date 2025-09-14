@@ -24,7 +24,7 @@
     <logger name="org.apache.spark" level="WARN"/>
     <logger name="org.apache.hadoop" level="WARN"/>
     <logger name="org.apache.iceberg" level="INFO"/>
-    <logger name="com.example.spark" level="INFO"/>
+    <logger name="com.morillo.spark" level="INFO"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

@@ -1,4 +1,4 @@
-package com.example.spark.model
+package com.morillo.spark.model
 
 import java.sql.Timestamp
 

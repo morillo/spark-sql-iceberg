@@ -20,7 +20,7 @@ spark-sql-iceberg/
 ├── src/
 │   ├── main/
 │   │   ├── scala/
-│   │   │   └── com/example/spark/
+│   │   │   └── com/morillo/spark/
 │   │   │       ├── config/          # Configuration management
 │   │   │       ├── model/           # Data models
 │   │   │       ├── service/         # Business logic
@@ -91,7 +91,7 @@ Simply select the desired configuration and click Run.
 mvn clean compile
 
 # Run with local configuration
-mvn exec:java -Dexec.mainClass="com.example.spark.SparkIcebergApp" -Denv=local
+mvn exec:java -Dexec.mainClass="com.morillo.spark.SparkIcebergApp" -Denv=local
 
 # Run tests
 mvn test
@@ -105,7 +105,7 @@ mvn clean package
 
 # Run with spark-submit (requires Spark installation)
 spark-submit \
-  --class com.example.spark.SparkIcebergApp \
+  --class com.morillo.spark.SparkIcebergApp \
   --master local[*] \
   --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions \
   --conf spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkSessionCatalog \

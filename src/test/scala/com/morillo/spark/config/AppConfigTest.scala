@@ -1,4 +1,4 @@
-package com.example.spark.config
+package com.morillo.spark.config
 
 import org.scalatest.funsuite.AnyFunSuite
 

@@ -1,9 +1,9 @@
-package com.example.spark
+package com.morillo.spark
 
-import com.example.spark.config.AppConfig
-import com.example.spark.model.User
-import com.example.spark.service.IcebergService
-import com.example.spark.util.SparkSessionFactory
+import com.morillo.spark.config.AppConfig
+import com.morillo.spark.model.User
+import com.morillo.spark.service.IcebergService
+import com.morillo.spark.util.SparkSessionFactory
 import org.slf4j.LoggerFactory
 
 import java.sql.Timestamp
@@ -81,12 +81,19 @@ object SparkIcebergApp {
     icebergService.getTableHistory().show()
 
     // Time travel - read data as of first snapshot
-    Try(icebergService.getTableSnapshots().collect().last.getLong(0)) match {
-      case Success(firstSnapshotId) =>
+    Try {
+      val snapshots = icebergService.getTableSnapshots().collect()
+      if (snapshots.nonEmpty) {
+        val firstSnapshotId = snapshots.last.getLong(1) // snapshot_id is in column 1
         println(s"=== Data at First Snapshot ($firstSnapshotId) ===")
         icebergService.readUsersAtSnapshot(firstSnapshotId).show()
-      case Failure(_) =>
-        logger.warn("Could not retrieve snapshot for time travel demo")
+      } else {
+        logger.warn("No snapshots available for time travel demo")
+      }
+    } match {
+      case Success(_) => // Success case handled above
+      case Failure(exception) =>
+        logger.warn(s"Could not retrieve snapshot for time travel demo: ${exception.getMessage}")
     }
 
     // Compact table

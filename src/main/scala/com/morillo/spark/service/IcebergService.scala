@@ -1,7 +1,7 @@
-package com.example.spark.service
+package com.morillo.spark.service
 
-import com.example.spark.config.AppConfig
-import com.example.spark.model.User
+import com.morillo.spark.config.AppConfig
+import com.morillo.spark.model.User
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 import org.slf4j.LoggerFactory
@@ -13,7 +13,7 @@ class IcebergService(spark: SparkSession, config: AppConfig) {
   import spark.implicits._
 
   private val logger = LoggerFactory.getLogger(this.getClass)
-  private val catalogName = config.catalogName
+  private val catalogName = "spark_catalog"
   private val tableName = s"$catalogName.default.users"
 
   def createTable(): Unit = {
