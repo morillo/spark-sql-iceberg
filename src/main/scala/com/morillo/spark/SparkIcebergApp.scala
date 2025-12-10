@@ -107,7 +107,13 @@ object SparkIcebergApp {
     Seq(
       User(1, "John Doe", "john.doe@example.com", now),
       User(2, "Jane Smith", "jane.smith@example.com", now),
-      User(3, "Bob Johnson", "bob.johnson@example.com", now)
+      User(3, "Bob Johnson", "bob.johnson@example.com", now),
+      User(4, "John Kennedy", "john.kennedy@whitehouse.gov", now),
+      User(5, "Lyndon Johnson", "lyndon.johnson@whitehouse.gov", now),
+      User(6, "James Carter", "james.carter@whitehouse.gov", now),
+      User(7, "William Clinton", "william.clinton@whitehouse.gov", now),
+      User(8, "Barack Obama", "barack.obama@whitehouse.gov", now),
+      User(9, "Joseph Biden", "joseph.biden@whitehouse.gov", now)
     )
   }
 }
