@@ -1,13 +1,22 @@
 #!/bin/bash
+set -euo pipefail
+cd "$(dirname "$0")"
+
+# Spark 4.x supports Java 17/21 only; Homebrew's default java is too new.
+export JAVA_HOME="$(/usr/libexec/java_home -v 17)"
+
+# Pinned Spark distribution matching the Iceberg runtime bundled in the JAR.
+# (Homebrew's apache-spark tracks the latest Spark, which Iceberg may not
+# support yet — same situation as with 3.5.2 back in the day.)
+export SPARK_HOME=/usr/local/spark-versions/spark-4.1.3
 
 # Build the JAR first
-echo "Building JAR..."
+echo "Building JAR (JDK 17)..."
 mvn clean package -DskipTests -q
 
 # Run SparkIcebergApp with spark-submit
-echo "Running SparkIcebergApp with spark-submit..."
-/usr/local/spark-versions/spark-3.5.2/bin/spark-submit \
+echo "Running SparkIcebergApp with spark-submit ($SPARK_HOME)..."
+"$SPARK_HOME/bin/spark-submit" \
   --class com.morillo.spark.SparkIcebergApp \
   --master "local[*]" \
-  --conf "spark.driver.extraJavaOptions=--add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/sun.nio.cs=ALL-UNNAMED --add-opens=java.base/sun.security.action=ALL-UNNAMED --add-opens=java.base/sun.util.calendar=ALL-UNNAMED --add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED -Djdk.reflect.useDirectMethodHandle=false" \
   target/spark-sql-iceberg-1.0-SNAPSHOT.jar

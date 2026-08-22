@@ -4,8 +4,8 @@ A comprehensive Scala Maven project demonstrating Apache Spark integration with 
 
 ## Features
 
-- **Apache Spark 3.5.2** with Scala 2.12.18
-- **Apache Iceberg 1.4.3** integration
+- **Apache Spark 4.1.3** with Scala 2.13.17
+- **Apache Iceberg 1.11.0** integration (`iceberg-spark-runtime-4.1`)
 - Complete CRUD operations on Iceberg tables
 - Time travel queries and snapshot management
 - Environment-based configuration (local/prod)
@@ -13,36 +13,46 @@ A comprehensive Scala Maven project demonstrating Apache Spark integration with 
 - IntelliJ IDEA integration with run configurations
 - Maven-based build system with fat JAR support
 
-## Project Structure
+## Version Pinning (important)
+
+Homebrew's `apache-spark` always tracks the latest Spark release, which is often
+**ahead of what Iceberg supports**. As of August 2026, Homebrew ships Spark
+4.2.0, but the newest published Iceberg Spark runtime targets Spark 4.1 (and the
+4.1 runtime is binary-incompatible with Spark 4.2 — `IncompatibleClassChangeError`
+on `connector.catalog.View`). This project therefore runs against a **pinned
+Spark distribution**, the same approach used previously with Spark 3.5.2:
 
 ```
-spark-sql-iceberg/
-├── src/
-│   ├── main/
-│   │   ├── scala/
-│   │   │   └── com/morillo/spark/
-│   │   │       ├── config/          # Configuration management
-│   │   │       ├── model/           # Data models
-│   │   │       ├── service/         # Business logic
-│   │   │       ├── util/            # Utilities
-│   │   │       └── SparkIcebergApp.scala  # Main application
-│   │   └── resources/
-│   │       ├── sample-users.json    # Sample data
-│   │       └── logback.xml          # Logging configuration
-│   └── test/
-│       └── scala/                   # Unit tests
-├── .idea/
-│   └── runConfigurations/           # IntelliJ run configs
-├── pom.xml                          # Maven configuration
-└── README.md
+/usr/local/spark-versions/spark-4.1.3   <- used by the run scripts (SPARK_HOME)
 ```
+
+Install/refresh it with:
+
+```bash
+curl -o /tmp/spark.tgz https://dlcdn.apache.org/spark/spark-4.1.3/spark-4.1.3-bin-hadoop3.tgz
+tar xzf /tmp/spark.tgz -C /usr/local/spark-versions
+mv /usr/local/spark-versions/spark-4.1.3-bin-hadoop3 /usr/local/spark-versions/spark-4.1.3
+```
+
+Keep `spark.version` in `pom.xml` aligned with this distribution. When Iceberg
+publishes a Spark 4.2 runtime, bump both together.
 
 ## Prerequisites
 
-- Java 8 or higher
-- Scala 2.12.x
-- Maven 3.6+
+- **Java 17** (Spark 4.x supports 17/21 only; Homebrew's default `java`/Maven
+  JDK is too new — the build enforces this and fails fast otherwise)
+- Maven 3.8+
+- Pinned Spark distribution (see above) for `spark-submit`
 - IntelliJ IDEA (recommended)
+
+All Maven commands need JDK 17:
+
+```bash
+export JAVA_HOME=$(/usr/libexec/java_home -v 17)
+```
+
+The run scripts (`run-spark-submit.sh`, `run-simple-test.sh`) set this
+automatically.
 
 ## Setup
 
@@ -56,17 +66,24 @@ spark-sql-iceberg/
 
 ### 2. Configure IntelliJ
 
-1. Go to **File → Project Structure → Modules**
-2. Ensure `src/main/scala` is marked as **Sources**
-3. Ensure `src/test/scala` is marked as **Test Sources**
-4. Ensure `src/main/resources` is marked as **Resources**
-5. Set Project SDK to Java 8+
+1. Set the **Project SDK to a Java 17 JDK** (e.g. Homebrew's `openjdk@17` via
+   the stable path `/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home`,
+   or the `/Library/Java/JavaVirtualMachines/openjdk-17.jdk` symlink)
+2. Ensure `src/main/scala` is Sources, `src/test/scala` is Test Sources, and
+   `src/main/resources` is Resources (the Maven import does this automatically)
+
+Spark dependencies use Maven `provided` scope (they come from the Spark
+distribution when using spark-submit). The bundled run configurations already
+enable **"Add dependencies with 'provided' scope to classpath"**, so running
+inside IntelliJ just works. If you create a new Application run configuration
+manually, enable that option (Modify options → Add dependencies with "provided"
+scope to classpath) and copy the `--add-opens` VM options from an existing
+configuration.
 
 ### 3. Verify Setup
 
-Run the tests to verify everything is working:
-
 ```bash
+export JAVA_HOME=$(/usr/libexec/java_home -v 17)
 mvn test
 ```
 
@@ -76,42 +93,38 @@ mvn test
 
 The project includes pre-configured run configurations:
 
-1. **SparkIcebergApp (Local)** - Runs with local Spark configuration
-2. **SparkIcebergApp (Prod)** - Runs with production-like configuration
-3. **Run Tests** - Executes all unit tests
+1. **SparkIcebergApp (Working)** - the full Iceberg demo
+2. **SimpleSparkTest (Working)** - minimal Spark smoke test
+3. **Run Tests** - executes all unit tests
 
 Simply select the desired configuration and click Run.
 
 ### From Command Line
 
-#### Local Development
+#### One-shot scripts
 
 ```bash
-# Compile the project
-mvn clean compile
-
-# Run with local configuration
-mvn exec:java -Dexec.mainClass="com.morillo.spark.SparkIcebergApp" -Denv=local
-
-# Run tests
-mvn test
+./run-spark-submit.sh    # build + spark-submit the Iceberg demo
+./run-simple-test.sh     # build + spark-submit the smoke test
 ```
 
-#### Production Build
+#### Manually
 
 ```bash
-# Create fat JAR
-mvn clean package
+export JAVA_HOME=$(/usr/libexec/java_home -v 17)
 
-# Run with spark-submit (requires Spark installation)
-spark-submit \
+# Build the fat JAR (app classes + Iceberg runtime; Spark stays provided)
+mvn clean package -DskipTests
+
+# Run with the pinned Spark distribution
+/usr/local/spark-versions/spark-4.1.3/bin/spark-submit \
   --class com.morillo.spark.SparkIcebergApp \
-  --master local[*] \
-  --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions \
-  --conf spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkSessionCatalog \
-  --conf spark.sql.catalog.spark_catalog.type=hive \
+  --master "local[*]" \
   target/spark-sql-iceberg-1.0-SNAPSHOT.jar
 ```
+
+Catalog/extension settings are applied in code by `SparkSessionFactory`, so no
+`--conf` flags are needed.
 
 ## Configuration
 
@@ -176,69 +189,52 @@ val snapshot = icebergService.readUsersAtSnapshot(snapshotId)
 
 ## Testing
 
-The project includes comprehensive tests:
-
 ```bash
+export JAVA_HOME=$(/usr/libexec/java_home -v 17)
+
 # Run all tests
 mvn test
 
-# Run specific test class
-mvn test -Dtest=IcebergServiceTest
-
-# Run tests with verbose output
-mvn test -Dtest=IcebergServiceTest -DforkCount=1 -DreuseForks=false
-```
-
-## Building JAR for Production
-
-Create a fat JAR suitable for spark-submit:
-
-```bash
-mvn clean package
-
-# The JAR will be created at:
-# target/spark-sql-iceberg-1.0-SNAPSHOT.jar
+# Run a specific suite
+mvn test -Dsuites=com.morillo.spark.service.IcebergServiceTest
 ```
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Java Version**: Ensure Java 8+ is being used
-2. **Scala Version**: Project uses Scala 2.12.18 compatible with Spark 3.5.2
-3. **Memory**: Increase JVM heap if running locally: `-Xmx4g`
-4. **Warehouse Directory**: Ensure write permissions to warehouse location
+1. **`getSubject is not supported` / enforcer failure**: Maven is running on a
+   too-new JDK (Homebrew's default). `export JAVA_HOME=$(/usr/libexec/java_home -v 17)`.
+2. **`IncompatibleClassChangeError: ... connector.catalog.View`**: the JAR was
+   submitted to Spark 4.2+ (e.g. Homebrew's `spark-submit` on PATH). Use the
+   pinned distribution in `/usr/local/spark-versions/spark-4.1.3`.
+3. **Kryo `HeapByteBuffer` serializer errors in the IDE**: the run
+   configuration is missing the `--add-opens` VM options — copy them from a
+   bundled configuration.
+4. **Memory**: Increase JVM heap if running locally: `-Xmx4g`
+5. **Warehouse Directory**: Ensure write permissions to warehouse location
 
 ### Logging
 
-The application uses Logback for logging. Configuration is in `src/main/resources/logback.xml`.
-
-- **Console Output**: INFO level and above
-- **File Output**: Logs to `logs/spark-iceberg.log`
-- **Spark Logging**: Set to WARN to reduce verbosity
-
-### Performance Tips
-
-1. **Local Development**: Use `local[*]` for maximum parallelism
-2. **Memory**: Allocate sufficient memory for Spark driver and executors
-3. **Warehouse Location**: Use local filesystem for development, distributed storage for production
+Logging goes through SLF4J to Spark's bundled Log4j 2 implementation. In local
+mode the app lowers Spark's log level to WARN after startup.
 
 ## Dependencies
 
 ### Core Dependencies
-- Apache Spark 3.5.2
-- Apache Iceberg 1.4.3
-- Scala 2.12.18
-- Hadoop 3.3.4
+- Apache Spark 4.1.3 (`provided` — supplied by the Spark distribution / IDE classpath)
+- Apache Iceberg 1.11.0 (`iceberg-spark-runtime-4.1_2.13`, bundled in the fat JAR)
+- Scala 2.13.17 (`provided`)
 
 ### Testing Dependencies
-- ScalaTest 3.2.17
+- ScalaTest 3.2.19
 - JUnit integration
 
 ### Build Plugins
-- scala-maven-plugin 4.8.1
-- maven-shade-plugin 3.4.1 (for fat JAR)
+- scala-maven-plugin 4.9.2
+- maven-shade-plugin 3.6.0 (for fat JAR)
 - scalatest-maven-plugin 2.2.0
+- maven-enforcer-plugin 3.5.0 (JDK guard)
 
 ## Contributing
 
