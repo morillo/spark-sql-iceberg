@@ -91,8 +91,8 @@ class IcebergService(spark: SparkSession, config: AppConfig) {
     try {
       var updateClause = "updated_at = current_timestamp()"
 
-      name.foreach(_ => updateClause += s", name = '$name'")
-      email.foreach(_ => updateClause += s", email = '$email'")
+      name.foreach(n => updateClause += s", name = '$n'")
+      email.foreach(e => updateClause += s", email = '$e'")
       isActive.foreach(active => updateClause += s", is_active = $active")
 
       val updateSQL = s"UPDATE $tableName SET $updateClause WHERE id = $id"

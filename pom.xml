@@ -13,176 +13,60 @@
     <description>A complete Spark SQL and Apache Iceberg integration example</description>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <!-- Versions -->
-        <scala.version>2.12.18</scala.version>
-        <scala.compat.version>2.12</scala.compat.version>
-        <spark.version>3.5.2</spark.version>
-        <iceberg.version>1.4.3</iceberg.version>
-        <hadoop.version>3.3.4</hadoop.version>
-        <jackson.version>2.15.2</jackson.version>
-        <scalatest.version>3.2.17</scalatest.version>
-        <slf4j.version>2.0.9</slf4j.version>
-        <logback.version>1.4.14</logback.version>
+        <!-- Versions: keep spark.version aligned with the pinned spark-submit
+             distribution in /usr/local/spark-versions/spark-4.1.3 (Homebrew's
+             apache-spark 4.2.x has no published Iceberg runtime yet, and the
+             4.1 runtime is binary-incompatible with Spark 4.2) -->
+        <scala.version>2.13.17</scala.version>
+        <scala.compat.version>2.13</scala.compat.version>
+        <spark.version>4.1.3</spark.version>
+        <iceberg.version>1.11.0</iceberg.version>
+        <iceberg.spark.compat>4.1</iceberg.spark.compat>
+        <scalatest.version>3.2.19</scalatest.version>
+        <slf4j.version>2.0.17</slf4j.version>
     </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <!-- Force Jackson version to be consistent -->
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-core</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-annotations</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.module</groupId>
-                <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
-        <!-- Scala -->
+        <!-- Scala: provided by the Spark distribution at runtime -->
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
             <version>${scala.version}</version>
+            <scope>provided</scope>
         </dependency>
 
-        <!-- Apache Spark Core -->
+        <!-- Apache Spark: provided by spark-submit; in IntelliJ enable
+             "Add dependencies with 'provided' scope to classpath" (already set
+             in the shared run configurations) -->
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala.compat.version}</artifactId>
             <version>${spark.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.module</groupId>
-                    <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
-                </exclusion>
-            </exclusions>
+            <scope>provided</scope>
         </dependency>
-
-        <!-- Apache Spark SQL -->
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_${scala.compat.version}</artifactId>
             <version>${spark.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.module</groupId>
-                    <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
-                </exclusion>
-            </exclusions>
+            <scope>provided</scope>
         </dependency>
 
-        <!-- Apache Spark Catalyst -->
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-catalyst_${scala.compat.version}</artifactId>
-            <version>${spark.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.module</groupId>
-                    <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!-- Apache Iceberg -->
+        <!-- Apache Iceberg: the only dependency bundled into the fat JAR -->
         <dependency>
             <groupId>org.apache.iceberg</groupId>
-            <artifactId>iceberg-spark-runtime-3.5_${scala.compat.version}</artifactId>
+            <artifactId>iceberg-spark-runtime-${iceberg.spark.compat}_${scala.compat.version}</artifactId>
             <version>${iceberg.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.iceberg</groupId>
-            <artifactId>iceberg-core</artifactId>
-            <version>${iceberg.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!-- Jackson - Managed versions -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-
-        <!-- Hadoop -->
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-client-api</artifactId>
-            <version>${hadoop.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-client-runtime</artifactId>
-            <version>${hadoop.version}</version>
-        </dependency>
-
-        <!-- Logging -->
+        <!-- Logging API only; the implementation (log4j2) comes from Spark -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>${logback.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Test Dependencies -->
@@ -195,28 +79,47 @@
         <dependency>
             <groupId>org.scalatestplus</groupId>
             <artifactId>junit-4-13_${scala.compat.version}</artifactId>
-            <version>3.2.17.0</version>
+            <version>3.2.19.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <repositories>
-        <repository>
-            <id>central</id>
-            <name>Maven Central</name>
-            <url>https://repo1.maven.org/maven2/</url>
-        </repository>
-    </repositories>
 
     <build>
         <sourceDirectory>src/main/scala</sourceDirectory>
         <testSourceDirectory>src/test/scala</testSourceDirectory>
         <plugins>
+            <!-- Fail fast with a clear message when built on an unsupported JDK
+                 (Homebrew's default `java`/Maven JDK is too new for Spark) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>enforce-jdk</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>[17,22)</version>
+                                    <message>
+Spark 4.x supports Java 17 or 21 only. Run Maven with JDK 17, e.g.:
+  export JAVA_HOME=$(/usr/libexec/java_home -v 17)
+                                    </message>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- Scala Maven Plugin -->
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>4.8.1</version>
+                <version>4.9.2</version>
                 <executions>
                     <execution>
                         <goals>
@@ -231,43 +134,27 @@
                         <arg>-deprecation</arg>
                         <arg>-feature</arg>
                         <arg>-unchecked</arg>
+                        <arg>-release:17</arg>
                     </args>
-                    <jvmArgs>
-                        <jvmArg>--add-opens=java.base/java.lang=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/java.lang.invoke=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/java.lang.reflect=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/java.io=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/java.net=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/java.nio=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/java.util=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/java.util.concurrent=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/sun.nio.ch=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/sun.nio.cs=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/sun.security.action=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/sun.util.calendar=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED</jvmArg>
-                        <jvmArg>-Djdk.reflect.useDirectMethodHandle=false</jvmArg>
-                    </jvmArgs>
                 </configuration>
             </plugin>
 
-            <!-- Maven Compiler Plugin -->
+            <!-- Maven Compiler Plugin (no Java sources, but keeps IDE import sane) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.13.0</version>
                 <configuration>
-                    <source>17</source>
-                    <target>17</target>
+                    <release>17</release>
                 </configuration>
             </plugin>
 
-            <!-- Maven Shade Plugin for creating fat JAR -->
+            <!-- Maven Shade Plugin: fat JAR = app classes + Iceberg runtime.
+                 Spark/Scala/Hadoop are provided by the Spark distribution. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.4.1</version>
+                <version>3.6.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -275,6 +162,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>
@@ -290,16 +178,14 @@
                                     <mainClass>com.morillo.spark.SparkIcebergApp</mainClass>
                                 </transformer>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                                    <resource>reference.conf</resource>
-                                </transformer>
                             </transformers>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
 
-            <!-- ScalaTest Plugin -->
+            <!-- ScalaTest Plugin (forks a JVM; Spark on JDK 17+ needs the
+                 add-opens flags below) -->
             <plugin>
                 <groupId>org.scalatest</groupId>
                 <artifactId>scalatest-maven-plugin</artifactId>
@@ -318,12 +204,13 @@
                         --add-opens=java.base/java.util=ALL-UNNAMED
                         --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
                         --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED
+                        --add-opens=java.base/jdk.internal.ref=ALL-UNNAMED
                         --add-opens=java.base/sun.nio.ch=ALL-UNNAMED
                         --add-opens=java.base/sun.nio.cs=ALL-UNNAMED
                         --add-opens=java.base/sun.security.action=ALL-UNNAMED
                         --add-opens=java.base/sun.util.calendar=ALL-UNNAMED
                         --add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED
-                        -Djdk.reflect.useDirectMethodHandle=false
+                        -Xmx2g
                     </argLine>
                 </configuration>
                 <executions>
@@ -336,50 +223,13 @@
                 </executions>
             </plugin>
 
-            <!-- Maven Surefire Plugin -->
+            <!-- Maven Surefire Plugin: disabled, ScalaTest runs the tests -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.5.2</version>
                 <configuration>
                     <skipTests>true</skipTests>
-                </configuration>
-            </plugin>
-
-            <!-- Exec Maven Plugin for running in IntelliJ -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <mainClass>com.morillo.spark.SparkIcebergApp</mainClass>
-                    <options>
-                        <option>--add-opens=java.base/java.lang=ALL-UNNAMED</option>
-                        <option>--add-opens=java.base/java.lang.invoke=ALL-UNNAMED</option>
-                        <option>--add-opens=java.base/java.lang.reflect=ALL-UNNAMED</option>
-                        <option>--add-opens=java.base/java.io=ALL-UNNAMED</option>
-                        <option>--add-opens=java.base/java.net=ALL-UNNAMED</option>
-                        <option>--add-opens=java.base/java.nio=ALL-UNNAMED</option>
-                        <option>--add-opens=java.base/java.util=ALL-UNNAMED</option>
-                        <option>--add-opens=java.base/java.util.concurrent=ALL-UNNAMED</option>
-                        <option>--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED</option>
-                        <option>--add-opens=java.base/sun.nio.ch=ALL-UNNAMED</option>
-                        <option>--add-opens=java.base/sun.nio.cs=ALL-UNNAMED</option>
-                        <option>--add-opens=java.base/sun.security.action=ALL-UNNAMED</option>
-                        <option>--add-opens=java.base/sun.util.calendar=ALL-UNNAMED</option>
-                        <option>--add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED</option>
-                        <option>-Xmx4g</option>
-                    </options>
-                    <systemProperties>
-                        <systemProperty>
-                            <key>jdk.reflect.useDirectMethodHandle</key>
-                            <value>false</value>
-                        </systemProperty>
-                        <systemProperty>
-                            <key>env</key>
-                            <value>local</value>
-                        </systemProperty>
-                    </systemProperties>
                 </configuration>
             </plugin>
         </plugins>

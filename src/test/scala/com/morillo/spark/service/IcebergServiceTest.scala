@@ -39,18 +39,19 @@ class IcebergServiceTest extends AnyFunSuite with BeforeAndAfterAll with BeforeA
   }
 
   override def afterEach(): Unit = {
-    // Clean up after each test
+    // Clean up after each test (IcebergService always writes to spark_catalog)
     try {
-      spark.sql("DROP TABLE IF EXISTS test_catalog.default.users")
+      spark.sql("DROP TABLE IF EXISTS spark_catalog.default.users")
     } catch {
       case _: Exception => // Ignore cleanup errors
     }
   }
 
   test("create table should create Iceberg table successfully") {
-    // Table creation happens in beforeEach, so just verify it exists
-    val tables = spark.sql("SHOW TABLES IN test_catalog.default").collect()
-    assert(tables.exists(_.getString(1) == "users"))
+    // Table creation happens in beforeEach; querying it proves it exists
+    // (SHOW TABLES listing semantics for v2 catalogs changed in Spark 4)
+    val count = spark.table("spark_catalog.default.users").count()
+    assert(count == 0)
   }
 
   test("insert and read users should work correctly") {
