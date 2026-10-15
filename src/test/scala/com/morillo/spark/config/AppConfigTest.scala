@@ -36,7 +36,7 @@ class AppConfigTest extends AnyFunSuite {
       val config = AppConfig()
       assert(config.environment == "prod")
     } finally {
-      System.clearProperty("env")
+      val _ = System.clearProperty("env")
     }
   }
 
@@ -46,7 +46,7 @@ class AppConfigTest extends AnyFunSuite {
       val config = AppConfig()
       assert(config.environment == "local")
     } finally {
-      System.clearProperty("env")
+      val _ = System.clearProperty("env")
     }
   }
 }

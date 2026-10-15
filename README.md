@@ -199,6 +199,49 @@ mvn test
 mvn test -Dsuites=com.morillo.spark.service.IcebergServiceTest
 ```
 
+## Code Quality and CI
+
+The build is strict, and CI enforces it on every pull request and push to `main`.
+
+- **Compiler**: scalac runs with `-Xlint -Wdead-code -Wvalue-discard -Werror`,
+  so any warning fails the build (the JVM equivalent of a strict type checker).
+- **Formatting**: [scalafmt](https://scalameta.org/scalafmt/) through the
+  Spotless Maven plugin; rules live in `.scalafmt.conf`.
+
+  ```bash
+  mvn spotless:apply   # format the code
+  mvn spotless:check   # fail on unformatted code (also part of `mvn verify`)
+  ```
+
+- **Secrets**: [Gitleaks](https://github.com/gitleaks/gitleaks) scans the full
+  history in CI and the staged changes in the pre-commit hook.
+- **Dependencies**: Dependabot opens weekly update PRs for Maven dependencies
+  and GitHub Actions (`.github/dependabot.yml`). Spark and Scala minor/major
+  bumps are excluded on purpose (see "Version Pinning"). On pull requests,
+  `dependency-review-action` flags newly added dependencies with known CVEs.
+- **CI** (`.github/workflows/ci.yml`): `mvn -B -ntp verify` on JDK 17 (compile,
+  tests, format check), plus the Gitleaks and dependency-review jobs. Actions
+  are pinned to commit SHAs and the workflow token is read-only.
+
+Run the same full check locally before pushing:
+
+```bash
+export JAVA_HOME=$(/usr/libexec/java_home -v 17)
+mvn verify
+```
+
+### Pre-commit hooks
+
+```bash
+uv tool install pre-commit   # once per machine
+pre-commit install           # once per clone
+pre-commit run --all-files   # run every hook by hand
+```
+
+The hooks run Gitleaks and `mvn spotless:check` before each commit. Maven needs
+JDK 17; the hook finds it with `/usr/libexec/java_home -v 17` on macOS and
+falls back to `JAVA_HOME` elsewhere.
+
 ## Troubleshooting
 
 ### Common Issues
@@ -235,6 +278,7 @@ mode the app lowers Spark's log level to WARN after startup.
 - maven-shade-plugin 3.6.0 (for fat JAR)
 - scalatest-maven-plugin 2.2.0
 - maven-enforcer-plugin 3.5.0 (JDK guard)
+- spotless-maven-plugin 3.10.4 (scalafmt 3.11.5 formatting)
 
 ## Contributing
 

@@ -1,12 +1,12 @@
 package com.morillo.spark.config
 
 case class AppConfig(
-  sparkAppName: String,
-  sparkMaster: String,
-  warehouseLocation: String,
-  catalogName: String,
-  catalogType: String,
-  environment: String
+    sparkAppName: String,
+    sparkMaster: String,
+    warehouseLocation: String,
+    catalogName: String,
+    catalogType: String,
+    environment: String
 )
 
 object AppConfig {
@@ -14,8 +14,8 @@ object AppConfig {
     val env = sys.props.getOrElse("env", "local")
     env match {
       case "local" => localConfig
-      case "prod" => prodConfig
-      case _ => localConfig
+      case "prod"  => prodConfig
+      case _       => localConfig
     }
   }
 

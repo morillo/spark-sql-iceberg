@@ -35,7 +35,7 @@ class IcebergService(spark: SparkSession, config: AppConfig) {
     """
 
     Try(spark.sql(createTableSQL)) match {
-      case Success(_) => logger.info(s"Table $tableName created successfully")
+      case Success(_)         => logger.info(s"Table $tableName created successfully")
       case Failure(exception) =>
         logger.error(s"Failed to create table $tableName", exception)
         throw exception
@@ -72,7 +72,8 @@ class IcebergService(spark: SparkSession, config: AppConfig) {
     logger.info(s"Reading user with id: $id from $tableName")
 
     try {
-      val users = spark.table(tableName)
+      val users = spark
+        .table(tableName)
         .filter(col("id") === id)
         .as[User]
         .collect()
@@ -85,7 +86,12 @@ class IcebergService(spark: SparkSession, config: AppConfig) {
     }
   }
 
-  def updateUser(id: Long, name: Option[String] = None, email: Option[String] = None, isActive: Option[Boolean] = None): Unit = {
+  def updateUser(
+      id: Long,
+      name: Option[String] = None,
+      email: Option[String] = None,
+      isActive: Option[Boolean] = None
+  ): Unit = {
     logger.info(s"Updating user with id: $id")
 
     try {
@@ -110,7 +116,7 @@ class IcebergService(spark: SparkSession, config: AppConfig) {
     logger.info(s"Merging ${users.length} users into $tableName")
 
     try {
-      val updatesDF = users.toDF().createOrReplaceTempView("user_updates")
+      users.toDF().createOrReplaceTempView("user_updates")
 
       val mergeSQL = s"""
         MERGE INTO $tableName t
