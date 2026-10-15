@@ -41,7 +41,7 @@ class IcebergServiceTest extends AnyFunSuite with BeforeAndAfterAll with BeforeA
   override def afterEach(): Unit = {
     // Clean up after each test (IcebergService always writes to spark_catalog)
     try {
-      spark.sql("DROP TABLE IF EXISTS spark_catalog.default.users")
+      val _ = spark.sql("DROP TABLE IF EXISTS spark_catalog.default.users")
     } catch {
       case _: Exception => // Ignore cleanup errors
     }
@@ -161,7 +161,7 @@ class IcebergServiceTest extends AnyFunSuite with BeforeAndAfterAll with BeforeA
           file.delete()
         }
       }
-      directory.delete()
+      val _ = directory.delete()
     }
   }
 }

@@ -10,7 +10,8 @@ object SparkSessionFactory {
   def createSparkSession(config: AppConfig): SparkSession = {
     logger.info(s"Creating Spark session for environment: ${config.environment}")
 
-    val sessionBuilder = SparkSession.builder()
+    val sessionBuilder = SparkSession
+      .builder()
       .appName(config.sparkAppName)
       .master(config.sparkMaster)
       .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
@@ -21,38 +22,42 @@ object SparkSessionFactory {
       .config("spark.sql.adaptive.coalescePartitions.enabled", "true")
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       // Java 17 compatibility settings
-      .config("spark.driver.extraJavaOptions",
+      .config(
+        "spark.driver.extraJavaOptions",
         "--add-opens=java.base/java.lang=ALL-UNNAMED " +
-        "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED " +
-        "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED " +
-        "--add-opens=java.base/java.io=ALL-UNNAMED " +
-        "--add-opens=java.base/java.net=ALL-UNNAMED " +
-        "--add-opens=java.base/java.nio=ALL-UNNAMED " +
-        "--add-opens=java.base/java.util=ALL-UNNAMED " +
-        "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED " +
-        "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED " +
-        "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED " +
-        "--add-opens=java.base/sun.nio.cs=ALL-UNNAMED " +
-        "--add-opens=java.base/sun.security.action=ALL-UNNAMED " +
-        "--add-opens=java.base/sun.util.calendar=ALL-UNNAMED " +
-        "--add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED " +
-        "-Djdk.reflect.useDirectMethodHandle=false")
-      .config("spark.executor.extraJavaOptions",
+          "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED " +
+          "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED " +
+          "--add-opens=java.base/java.io=ALL-UNNAMED " +
+          "--add-opens=java.base/java.net=ALL-UNNAMED " +
+          "--add-opens=java.base/java.nio=ALL-UNNAMED " +
+          "--add-opens=java.base/java.util=ALL-UNNAMED " +
+          "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED " +
+          "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED " +
+          "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED " +
+          "--add-opens=java.base/sun.nio.cs=ALL-UNNAMED " +
+          "--add-opens=java.base/sun.security.action=ALL-UNNAMED " +
+          "--add-opens=java.base/sun.util.calendar=ALL-UNNAMED " +
+          "--add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED " +
+          "-Djdk.reflect.useDirectMethodHandle=false"
+      )
+      .config(
+        "spark.executor.extraJavaOptions",
         "--add-opens=java.base/java.lang=ALL-UNNAMED " +
-        "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED " +
-        "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED " +
-        "--add-opens=java.base/java.io=ALL-UNNAMED " +
-        "--add-opens=java.base/java.net=ALL-UNNAMED " +
-        "--add-opens=java.base/java.nio=ALL-UNNAMED " +
-        "--add-opens=java.base/java.util=ALL-UNNAMED " +
-        "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED " +
-        "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED " +
-        "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED " +
-        "--add-opens=java.base/sun.nio.cs=ALL-UNNAMED " +
-        "--add-opens=java.base/sun.security.action=ALL-UNNAMED " +
-        "--add-opens=java.base/sun.util.calendar=ALL-UNNAMED " +
-        "--add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED " +
-        "-Djdk.reflect.useDirectMethodHandle=false")
+          "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED " +
+          "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED " +
+          "--add-opens=java.base/java.io=ALL-UNNAMED " +
+          "--add-opens=java.base/java.net=ALL-UNNAMED " +
+          "--add-opens=java.base/java.nio=ALL-UNNAMED " +
+          "--add-opens=java.base/java.util=ALL-UNNAMED " +
+          "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED " +
+          "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED " +
+          "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED " +
+          "--add-opens=java.base/sun.nio.cs=ALL-UNNAMED " +
+          "--add-opens=java.base/sun.security.action=ALL-UNNAMED " +
+          "--add-opens=java.base/sun.util.calendar=ALL-UNNAMED " +
+          "--add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED " +
+          "-Djdk.reflect.useDirectMethodHandle=false"
+      )
 
     // Environment-specific configurations
     config.environment match {

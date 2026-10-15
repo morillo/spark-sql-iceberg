@@ -52,7 +52,7 @@ object SparkIcebergApp {
     println("=== User with ID 1 ===")
     icebergService.readUserById(1) match {
       case Some(user) => println(user)
-      case None => println("User not found")
+      case None       => println("User not found")
     }
 
     // Update user
@@ -91,7 +91,7 @@ object SparkIcebergApp {
         logger.warn("No snapshots available for time travel demo")
       }
     } match {
-      case Success(_) => // Success case handled above
+      case Success(_)         => // Success case handled above
       case Failure(exception) =>
         logger.warn(s"Could not retrieve snapshot for time travel demo: ${exception.getMessage}")
     }

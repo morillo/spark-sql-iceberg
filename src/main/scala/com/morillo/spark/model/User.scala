@@ -3,12 +3,12 @@ package com.morillo.spark.model
 import java.sql.Timestamp
 
 case class User(
-  id: Long,
-  name: String,
-  email: String,
-  created_at: Timestamp,
-  updated_at: Option[Timestamp] = None,
-  is_active: Boolean = true
+    id: Long,
+    name: String,
+    email: String,
+    created_at: Timestamp,
+    updated_at: Option[Timestamp] = None,
+    is_active: Boolean = true
 )
 
 object User {
