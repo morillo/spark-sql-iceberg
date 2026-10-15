@@ -26,7 +26,7 @@
         <iceberg.version>1.11.0</iceberg.version>
         <iceberg.spark.compat>4.1</iceberg.spark.compat>
         <scalatest.version>3.2.19</scalatest.version>
-        <slf4j.version>2.0.17</slf4j.version>
+        <slf4j.version>2.0.20</slf4j.version>
     </properties>
 
     <dependencies>
